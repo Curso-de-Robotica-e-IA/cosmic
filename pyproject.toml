@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "cosmic"
+version = "0.1.0"
+description = "Code Output for State Machine Interactive Creation"
+authors = ["bopj <bopj@softex.cin.ufpe.br>"]
+license = "GNU AFFERO GENERAL PUBLIC LICENSE v3.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+rich = "^13.9.4"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+flake8 = "^7.1.1"
+black = "^24.10.0"
+isort = "^5.13.2"
+interrogate = "^1.7.0"
+taskipy = "^1.14.1"
+pytest-cov = "^6.0.0"
+
+
+[tool.poetry.group.doc.dependencies]
+mkdocs = "^1.6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 90
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorator = false
+ignore-module = true
+ignore-nested-functions = false
+ignore-nested-classes = true
+ignore-setters = false
+fail-under = 95
+exclude = ["tests", "setup.py", "docs", "build"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+verbose = 1
+quiet = false
+whitelist-regex = []
+color = true
