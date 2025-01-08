@@ -32,21 +32,8 @@ line-length = 90
 target-version = ["py310", "py311", "py312"]
 include = '\.pyi?$'
 
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = false
-ignore-magic = false
-ignore-semiprivate = false
-ignore-private = false
-ignore-property-decorator = false
-ignore-module = true
-ignore-nested-functions = false
-ignore-nested-classes = true
-ignore-setters = false
-fail-under = 95
-exclude = ["tests", "setup.py", "docs", "build"]
-ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
-verbose = 1
-quiet = false
-whitelist-regex = []
-color = true
+[tool.pytest.ini_options]
+addopts = "-vv --cov=src --cov-report=term-missing"
+testpaths = [
+    "tests",
+]
