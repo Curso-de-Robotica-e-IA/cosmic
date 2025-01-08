@@ -7,7 +7,15 @@ class ModelFactory:
     def __init__(self):
         self.model = ''
     
-    def xml_model_factory(self, type) -> None:
+    def xml_model_factory(self, type: str) -> None:
+        """factory to decide with model will be parsed
+
+        Args:
+            type (str)
+
+        Raises:
+            NotImplementedError
+        """        
         
         args = get_input_file()
         

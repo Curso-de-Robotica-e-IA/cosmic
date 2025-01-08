@@ -6,14 +6,14 @@ class Adapter(ABC):
     #     self.input_file = input_file
         
     @abstractmethod
-    def parse_xml():
+    def parse_xml(self, arg_to_parse):
         raise NotImplementedError('')
 
     @abstractmethod
-    def get_xml_data():
+    def get_xml_data(self, root):
         raise NotImplementedError('')
 
     @abstractmethod
-    def print_dict():
+    def print_dict(self, dict):
         raise NotImplementedError('')
 
