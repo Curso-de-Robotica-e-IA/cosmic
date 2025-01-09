@@ -8,7 +8,10 @@ class Dropdown(HorizontalGroup):
 
     DEFAULT_CSS = """
     Dropdown {
-        width: 16;
+        width: auto;
+        height: auto;
+        layout: horizontal;
+        overflow: hidden hidden;
     }
 
     .hidden {
@@ -30,7 +33,7 @@ class Dropdown(HorizontalGroup):
         self.button_id = f'dropdown_button_{self.key}'
         self.option_list_id = f'dropdown_option_{self.key}'
         self.button = Button(
-            label=self.button_label,
+            label=f'{self.button_label} ↓',
             id=self.button_id,
         )
         self.option_list = OptionList(

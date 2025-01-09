@@ -6,6 +6,7 @@ from textual.containers import (
 from textual.widgets import (
     Button,
     Placeholder,
+    ContentSwitcher,
 )
 from cli.components.dropdown import Dropdown
 
@@ -20,6 +21,7 @@ class Main(Container):
         self.enable_review_structure = False
         self.enable_generate_code = False
         self.enable_test_code = False
+        self.screen_content = None
 
     def compose(self):
         yield VerticalGroup(
