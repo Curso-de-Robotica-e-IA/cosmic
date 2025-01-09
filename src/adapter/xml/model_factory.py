@@ -12,7 +12,7 @@ class ModelFactory:
         """factory to decide with model will be parsed
 
         Args:
-            dialect (DIALECTS)
+            dialect (DIALECTS): which is the program source for the xml file.
 
         Raises:
             NotImplementedError

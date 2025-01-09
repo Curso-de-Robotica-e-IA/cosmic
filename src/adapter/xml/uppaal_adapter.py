@@ -3,34 +3,17 @@ import xml.etree.ElementTree as ET
 
 class UppaalAdapter(Adapter):
     
-    # def __init__(self, input_file: str):
-    #     super().__init__(input_file)
+    def __init__(self, input_file: str):
+        super().__init__(input_file)
         
 
-    def parse_xml(self, arg_to_parse: str) -> ET.Element:
-        """function to get the root element from input file passed by argument
-
-        Args:
-            arg_to_parse (str)
-
-        Returns:
-            ET.Element
-        """        
+    def parse_xml(self, arg_to_parse: str) -> ET.Element:  
         tree = ET.parse(arg_to_parse)
         root = tree.getroot()
         return root
     
             
     def get_xml_data(self, root: ET.Element) -> dict:
-        """function to return states and transitions from xml
-
-        Args:
-            root (ET.Element)
-
-        Returns:
-            tuple[dict,dict]
-        """        
-    
         result = {}
         
         for template in root.findall(".//template"):
@@ -62,12 +45,7 @@ class UppaalAdapter(Adapter):
         return result
 
     
-    def print_dict(self, result_dict: dict) -> None:
-        """function to print dict
-
-        Args:
-            result_dict (dict)
-        """        
+    def print_dict(self, result_dict: dict) -> None:      
         for agent,_ in result_dict.items():
             print(f'agent: {agent}')
             print(f'{_}\n')
