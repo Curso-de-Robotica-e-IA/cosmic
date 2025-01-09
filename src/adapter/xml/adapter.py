@@ -1,8 +1,9 @@
 from abc import abstractmethod, ABC
 import xml.etree.ElementTree as ET
 
+
 class Adapter(ABC):
-        
+
     @abstractmethod
     def parse_xml(self, arg_to_parse: str) -> ET.Element:
         """function to get the root element from input file passed by argument
@@ -12,7 +13,7 @@ class Adapter(ABC):
 
         Returns:
             ET.Element
-        """      
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -24,7 +25,7 @@ class Adapter(ABC):
 
         Returns:
             tuple[dict,dict]
-        """  
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -33,6 +34,5 @@ class Adapter(ABC):
 
         Args:
             result_dict (dict)
-        """  
+        """
         raise NotImplementedError()
-

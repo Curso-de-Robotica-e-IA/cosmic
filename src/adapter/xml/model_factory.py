@@ -2,11 +2,11 @@ from adapter.xml.uppaal_adapter import UppaalAdapter
 from typing import Literal
 
 
-DIALECTS = Literal['uppaal','astah']
+DIALECTS = Literal["uppaal", "astah"]
 
 
 class ModelFactory:
-    
+
     @staticmethod
     def xml_model_factory(dialect: DIALECTS) -> None:
         """factory to decide which model will be parsed
@@ -16,9 +16,9 @@ class ModelFactory:
 
         Raises:
             NotImplementedError
-        """        
-        
-        if dialect == 'uppaal':
+        """
+
+        if dialect == "uppaal":
             return UppaalAdapter()
-        elif dialect == 'astah':
-            raise NotImplementedError('Type not supported yet.')
+        elif dialect == "astah":
+            raise NotImplementedError("Type not supported yet.")
