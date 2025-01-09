@@ -9,7 +9,7 @@ class ModelFactory:
     
     @staticmethod
     def xml_model_factory(dialect: DIALECTS) -> None:
-        """factory to decide with model will be parsed
+        """factory to decide which model will be parsed
 
         Args:
             dialect (DIALECTS): which is the program source for the xml file.
