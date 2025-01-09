@@ -30,6 +30,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.taskipy.tasks]
 run = "python ./src/main.py"
+debug = "textual run ./src/main.py --dev"
 docs = "mkdocs serve"
 bdocs = "mkdocs build"
 test = "pytest -vv tests --ignore=tests/cao"

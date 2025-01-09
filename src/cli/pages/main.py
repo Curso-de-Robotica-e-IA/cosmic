@@ -2,23 +2,53 @@ from textual.containers import (
     Container,
     HorizontalGroup,
     VerticalGroup,
-    VerticalScroll,
 )
 from textual.widgets import (
     Button,
+    Placeholder,
 )
+from cli.components.dropdown import Dropdown
 
 
 class Main(Container):
 
-    def compose(self):
-        yield HorizontalGroup(
-            VerticalGroup(
-                Button(label='Load XML', id='load_xml'),
-                Button(label='Review Structure', id='review_structure'),
-                Button(label='Generate Code', id='generate_code'),
-                Button(label='Test Code', id='test_code'),
-            ),
+    xml_options = ['UPPAAL', 'ASTAH']
+    output_options = ['pytransitions', 'python-state-machine']
 
-            VerticalScroll(),
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enable_review_structure = False
+        self.enable_generate_code = False
+        self.enable_test_code = False
+
+    def compose(self):
+        yield VerticalGroup(
+            HorizontalGroup(
+                Button(label='Load XML', id='load_xml'),
+                Dropdown(
+                    button_label='XML Dialect',
+                    list_content=self.xml_options,
+                    key=1,
+                    id='xml_option',
+                ),
+                Dropdown(
+                    button_label='Output Dialect',
+                    list_content=self.output_options,
+                    key=2,
+                    id='output_option',
+                ),
+                Button(
+                    label='Review Structure',
+                    id='review_structure',
+                ),
+                Button(
+                    label='Generate Code',
+                    id='generate_code',
+                ),
+                Button(
+                    label='Test Code',
+                    id='test_code',
+                ),
+            ),
+            Placeholder(),
         )

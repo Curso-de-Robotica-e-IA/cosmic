@@ -7,6 +7,7 @@ class Cosmic(App):
 
     CSS_PATH = 'css/cosmic.tcss'
     BINDINGS = [
+        ('r', 'rerun', 'Rerun'),
         ('d', 'toggle_dark', 'Toggle Dark Mode'),
     ]
 
@@ -26,6 +27,10 @@ class Cosmic(App):
         )
         yield Footer()
         yield Main()
+
+    def action_rerun(self):
+        """An action to rerun the app."""
+        print('Rerunning...')
 
     def action_toggle_dark(self):
         """An action to toggle dark mode."""
