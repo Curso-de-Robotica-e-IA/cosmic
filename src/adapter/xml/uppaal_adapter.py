@@ -1,11 +1,7 @@
 from adapter.xml.adapter import Adapter
 import xml.etree.ElementTree as ET
 
-class UppaalAdapter(Adapter):
-    
-    def __init__(self, input_file: str):
-        super().__init__(input_file)
-        
+class UppaalAdapter(Adapter): 
 
     def parse_xml(self, arg_to_parse: str) -> ET.Element:  
         tree = ET.parse(arg_to_parse)

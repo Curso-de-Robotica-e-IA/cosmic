@@ -2,7 +2,7 @@ from adapter.xml.uppaal_adapter import UppaalAdapter
 from typing import Literal
 
 
-DIALECTS = Literal['uppaal', 'astah']
+DIALECTS = Literal['uppaal','astah']
 
 
 class ModelFactory:

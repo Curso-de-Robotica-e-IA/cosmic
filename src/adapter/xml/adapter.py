@@ -2,9 +2,6 @@ from abc import abstractmethod, ABC
 import xml.etree.ElementTree as ET
 
 class Adapter(ABC):
-    
-    def __init__(self, input_file: str):
-        self.input_file = input_file
         
     @abstractmethod
     def parse_xml(self, arg_to_parse: str) -> ET.Element:
