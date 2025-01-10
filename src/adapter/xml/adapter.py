@@ -36,3 +36,15 @@ class Adapter(ABC):
             result_dict (dict)
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def filter_conditions(self, declaration: str) -> list:
+        """function to extract function names from xml
+
+        Args:
+            declaration (str)
+
+        Returns:
+            list
+        """
+        raise NotImplementedError()
