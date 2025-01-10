@@ -1,4 +1,5 @@
-from adapter.xml.uppaal_adapter import UppaalAdapter
+from src.adapter.xml.adapter import Adapter
+from src.adapter.xml.uppaal_adapter import UppaalAdapter
 from typing import Literal
 
 
@@ -8,7 +9,7 @@ DIALECTS = Literal["uppaal", "astah"]
 class ModelFactory:
 
     @staticmethod
-    def xml_model_factory(dialect: DIALECTS) -> None:
+    def xml_model_factory(dialect: DIALECTS) -> Adapter:
         """factory to decide which model will be parsed
 
         Args:

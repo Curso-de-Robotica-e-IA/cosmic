@@ -1,4 +1,4 @@
-from adapter.xml.adapter import Adapter
+from src.adapter.xml.adapter import Adapter
 import xml.etree.ElementTree as ET
 
 
