@@ -64,18 +64,6 @@ class Main(Container):
                 label='Load XML',
                 id='load_xml',
             )
-            yield Dropdown(
-                button_label='XML Dialect',
-                list_content=self.xml_options,
-                key=1,
-                id='xml_option',
-            )
-            yield Dropdown(
-                button_label='Output Dialect',
-                list_content=self.output_options,
-                key=2,
-                id='output_option',
-            )
             yield Button(
                 label='Review Structure',
                 id='review_structure',
@@ -87,6 +75,18 @@ class Main(Container):
             yield Button(
                 label='Test Code',
                 id='test_code',
+            )
+            yield Dropdown(
+                button_label='XML Dialect',
+                list_content=self.xml_options,
+                key=1,
+                id='xml_option',
+            )
+            yield Dropdown(
+                button_label='Output Dialect',
+                list_content=self.output_options,
+                key=2,
+                id='output_option',
             )
 
         with ContentSwitcher(initial='main_page'):
