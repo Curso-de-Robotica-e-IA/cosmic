@@ -14,14 +14,21 @@ class UppaalAdapter(Adapter):
 
         for template in root.findall(".//template"):
             agent_name = template.find("name").text
-            result[agent_name] = {"states": [], "transitions": []}
+            result[agent_name] = {"initial_state": "", "states": [], "transitions": []}
             id_to_state = {}
+            states = []
+
+            for declaration in template.findall("declaration"):
+                condition = declaration.text
+                filtered_conditions = self.filter_conditions(condition)
 
             for location in template.findall("location"):
                 state_id = location.get("id")
                 state_name = location.find("name").text
+                states.append(state_name)
                 id_to_state[state_id] = state_name
                 result[agent_name]["states"].append(state_name)
+                result[agent_name]["initial_state"] = states[0]
 
             for transition in template.findall("transition"):
                 source_id = transition.find("source").get("ref")
@@ -34,6 +41,7 @@ class UppaalAdapter(Adapter):
                         "trigger": f"{source_name}_to_{target_name}",
                         "source": source_name,
                         "dest": target_name,
+                        "conditions": filtered_conditions,
                     }
                 )
 
@@ -43,3 +51,16 @@ class UppaalAdapter(Adapter):
         for agent, _ in result_dict.items():
             print(f"agent: {agent}")
             print(f"{_}\n")
+
+    def filter_conditions(self, declaration: str) -> list:
+
+        function_names = []
+
+        for line in declaration.splitlines():
+            line = line.strip()
+            if line.startswith("bool"):
+
+                name = line.split()[1].split("(")[0]
+                function_names.append(name)
+
+        return function_names
