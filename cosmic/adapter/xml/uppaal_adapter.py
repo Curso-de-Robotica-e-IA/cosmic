@@ -1,4 +1,4 @@
-from adapter.xml.adapter import Adapter
+from cosmic.adapter.xml.adapter import Adapter
 import xml.etree.ElementTree as ET
 
 
@@ -14,7 +14,11 @@ class UppaalAdapter(Adapter):
 
         for template in root.findall(".//template"):
             agent_name = template.find("name").text
-            result[agent_name] = {"initial_state": "", "states": [], "transitions": []}
+            result[agent_name] = {
+                "initial_state": "",
+                "states": [],
+                "transitions": [],
+            }
             id_to_state = {}
             states = []
 

@@ -1,4 +1,4 @@
-from adapter.xml.model_factory import (
+from cosmic.adapter.xml.model_factory import (
     ModelFactory,
     DIALECTS as XML_DIALECTS,
 )
@@ -29,7 +29,7 @@ class CodeGenerator:
             file: The template file for the code generation.
         """
         ref_files = {
-            'pytransitions': Path('src', 'adapter', 'templates', 'pytransitions_machine.mako'), # noqa
+            'pytransitions': Path('cosmic', 'adapter', 'templates', 'pytransitions_machine.mako'), # noqa
         }
         if code_dialect not in ref_files.keys():
             raise NotImplementedError('Type not supported yet.')
@@ -44,7 +44,7 @@ class CodeGenerator:
         self.template_file = self.get_template_file(code_dialect)
         self.template = Template(
             filename=self.template_file.as_posix(),
-            module_directory='src/generator/tmp/mako_modules',
+            module_directory='cosmic/generator/tmp/mako_modules',
         )
 
     def generate_code(
