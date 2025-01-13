@@ -1,5 +1,5 @@
-from src.adapter.xml.adapter import Adapter
-from src.adapter.xml.uppaal_adapter import UppaalAdapter
+from adapter.xml.adapter import Adapter
+from adapter.xml.uppaal_adapter import UppaalAdapter
 from typing import Literal
 
 

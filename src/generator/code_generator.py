@@ -1,9 +1,10 @@
-from src.adapter.xml.model_factory import (
+from adapter.xml.model_factory import (
     ModelFactory,
     DIALECTS as XML_DIALECTS,
 )
 from mako.template import Template
 from pathlib import Path
+from rich.progress import Progress
 from typing import Literal, Union
 
 
@@ -73,13 +74,26 @@ class CodeGenerator:
         root = self.xml_adapter.parse_xml(xml_file.resolve())
         result_dict = self.xml_adapter.get_xml_data(root)
 
-        for agent_name, data in result_dict.items():
-            output_file = Path(output_dir).joinpath(f'{agent_name}.py')
+        if not output_dir.exists():
+            output_dir.mkdir()
 
-            with open(output_file, 'w') as file:
-                file.write(
-                    self.template.render(
-                        agent_name=agent_name,
-                        **data,
-                    ),
+        with Progress() as progress:
+            codegen = progress.add_task(
+                'Generating code...',
+                total=len(result_dict),
+            )
+            advance_amount = 100 / len(result_dict)
+            for agent_name, data in result_dict.items():
+                output_file = Path(output_dir).joinpath(f'{agent_name}.py')
+                progress.update(
+                    task_description=f'Generating code for {agent_name}...',
+                    task_id=codegen,
+                    advance=advance_amount,
                 )
+                with open(output_file, 'w') as file:
+                    file.write(
+                        self.template.render(
+                            agent_name=agent_name,
+                            **data,
+                        ),
+                    )

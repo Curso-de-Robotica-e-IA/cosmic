@@ -1,6 +1,6 @@
 <%!
 from mako.template import Template
-%>
+%>\
 from transitions import State
 from transitions.extensions import GraphMachine
 
