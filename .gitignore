@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+/generated_code/*
+cosmic/generator/tmp/*
+
+# poetry
+poetry.lock

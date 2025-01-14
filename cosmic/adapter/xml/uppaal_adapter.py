@@ -1,4 +1,4 @@
-from adapter.xml.adapter import Adapter
+from cosmic.adapter.xml.adapter import Adapter
 import xml.etree.ElementTree as ET
 
 
@@ -14,7 +14,11 @@ class UppaalAdapter(Adapter):
 
         for template in root.findall(".//template"):
             agent_name = template.find("name").text
-            result[agent_name] = {"initial_state": "", "states": [], "transitions": []}
+            result[agent_name] = {
+                "initial_state": "",
+                "states": [],
+                "transitions": [],
+            }
             id_to_state = {}
             states = []
 
@@ -36,14 +40,14 @@ class UppaalAdapter(Adapter):
                 source_name = id_to_state.get(source_id)
                 target_name = id_to_state.get(target_id)
 
-                result[agent_name]["transitions"].append(
-                    {
+                transition = {
                         "trigger": f"{source_name}_to_{target_name}",
                         "source": source_name,
                         "dest": target_name,
-                        "conditions": filtered_conditions,
                     }
-                )
+                if len(filtered_conditions) > 0:
+                    transition["conditions"] = filtered_conditions
+                result[agent_name]["transitions"].append(transition)
 
         return result
 
