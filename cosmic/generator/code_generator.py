@@ -1,3 +1,5 @@
+import shutil
+
 from cosmic.adapter.xml.model_factory import (
     ModelFactory,
     DIALECTS as XML_DIALECTS,
@@ -8,12 +10,14 @@ from rich.progress import Progress
 from typing import Literal, Union
 
 
-DIALECTS = Literal['pytransitions', 'python-state-machine']
+DIALECTS = Literal["pytransitions", "python-state-machine"]
+BASE_PATH = Path(__file__).resolve().parent.parent
 
 
 class CodeGenerator:
-    """Class to generate a finite state machine python code from a xml file.
-    """
+    """Class to generate a finite state machine python code from a xml file."""
+
+    temp_folder: Path = Path(BASE_PATH, "generator", "tmp", "mako_modules")
 
     @staticmethod
     def get_template_file(code_dialect: DIALECTS):
@@ -29,10 +33,12 @@ class CodeGenerator:
             file: The template file for the code generation.
         """
         ref_files = {
-            'pytransitions': Path('cosmic', 'adapter', 'templates', 'pytransitions_machine.mako'), # noqa
+            "pytransitions": Path(
+                BASE_PATH, "adapter", "templates", "pytransitions_machine.mako"
+            ),
         }
         if code_dialect not in ref_files.keys():
-            raise NotImplementedError('Type not supported yet.')
+            raise NotImplementedError("Type not supported yet.")
         return ref_files.get(code_dialect)
 
     def __init__(
@@ -44,7 +50,7 @@ class CodeGenerator:
         self.template_file = self.get_template_file(code_dialect)
         self.template = Template(
             filename=self.template_file.as_posix(),
-            module_directory='cosmic/generator/tmp/mako_modules',
+            module_directory=self.temp_folder,
         )
 
     def generate_code(
@@ -69,7 +75,7 @@ class CodeGenerator:
         if isinstance(xml_file, str):
             xml_file = Path(xml_file)
         if not xml_file.exists() or not xml_file.is_file():
-            raise FileNotFoundError(f'File {xml_file} not found.')
+            raise FileNotFoundError(f"File {xml_file} not found.")
 
         root = self.xml_adapter.parse_xml(xml_file.resolve())
         result_dict = self.xml_adapter.get_xml_data(root)
@@ -79,21 +85,22 @@ class CodeGenerator:
 
         with Progress() as progress:
             codegen = progress.add_task(
-                'Generating code...',
+                "Generating code...",
                 total=len(result_dict),
             )
             advance_amount = 100 / len(result_dict)
             for agent_name, data in result_dict.items():
-                output_file = Path(output_dir).joinpath(f'{agent_name}.py')
+                output_file = Path(output_dir).joinpath(f"{agent_name}.py")
                 progress.update(
-                    task_description=f'Generating code for {agent_name}...',
+                    task_description=f"Generating code for {agent_name}...",
                     task_id=codegen,
                     advance=advance_amount,
                 )
-                with open(output_file, 'w') as file:
+                with open(output_file, "w") as file:
                     file.write(
                         self.template.render(
                             agent_name=agent_name,
                             **data,
                         ),
                     )
+        shutil.rmtree(self.temp_folder)
