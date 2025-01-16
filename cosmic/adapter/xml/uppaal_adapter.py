@@ -1,15 +1,38 @@
-from cosmic.adapter.xml.adapter import Adapter
 import xml.etree.ElementTree as ET
+from cosmic.adapter.xml.adapter import Adapter
 
 
 class UppaalAdapter(Adapter):
+    """Adapter for Uppaal xml files. This class is responsible for parsing
+    the xml file and extracting the necessary data into the general format
+    that the Cosmic framework uses.
+    """
 
-    def parse_xml(self, arg_to_parse: str) -> ET.Element:
-        tree = ET.parse(arg_to_parse)
+    @staticmethod
+    def find_xml_root(xml_file: str) -> ET.Element:
+        # documentations provided by the `Adapter` base class
+        tree = ET.parse(xml_file)
         root = tree.getroot()
         return root
 
-    def get_xml_data(self, root: ET.Element) -> dict:
+    @staticmethod
+    def filter_conditions(declaration: str) -> list:
+        # documentations provided by the `Adapter` base class
+        function_names = []
+
+        for line in declaration.splitlines():
+            line = line.strip()
+            if line.startswith("bool"):
+
+                name = line.split()[1].split("(")[0]
+                function_names.append(name)
+
+        return function_names
+
+    @staticmethod
+    def get_xml_data(xml_file: str) -> dict:
+        # documentations provided by the `Adapter` base class
+        root = UppaalAdapter.find_xml_root(xml_file)
         result = {}
 
         for template in root.findall(".//template"):
@@ -24,7 +47,9 @@ class UppaalAdapter(Adapter):
 
             for declaration in template.findall("declaration"):
                 condition = declaration.text
-                filtered_conditions = self.filter_conditions(condition)
+                filtered_conditions = UppaalAdapter.filter_conditions(
+                    condition,
+                )
 
             for location in template.findall("location"):
                 state_id = location.get("id")
@@ -51,20 +76,9 @@ class UppaalAdapter(Adapter):
 
         return result
 
-    def print_dict(self, result_dict: dict) -> None:
-        for agent, _ in result_dict.items():
+    @staticmethod
+    def print_dict(result_dict: dict) -> None:
+        # documentations provided by the `Adapter` base class
+        for agent, _agent_data in result_dict.items():
             print(f"agent: {agent}")
-            print(f"{_}\n")
-
-    def filter_conditions(self, declaration: str) -> list:
-
-        function_names = []
-
-        for line in declaration.splitlines():
-            line = line.strip()
-            if line.startswith("bool"):
-
-                name = line.split()[1].split("(")[0]
-                function_names.append(name)
-
-        return function_names
+            print(f"{_agent_data}\n")

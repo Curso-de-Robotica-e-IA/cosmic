@@ -4,47 +4,54 @@ import xml.etree.ElementTree as ET
 
 class Adapter(ABC):
 
+    @staticmethod
     @abstractmethod
-    def parse_xml(self, arg_to_parse: str) -> ET.Element:
-        """function to get the root element from input file passed by argument
+    def find_xml_root(self, xml_file: str) -> ET.Element:
+        """Find the root of the xml file
 
         Args:
-            arg_to_parse (str)
+            xml_file (str): Path to the xml file.
 
         Returns:
-            ET.Element
+            ET.Element: The root of the xml file.
         """
         raise NotImplementedError()
 
+    @staticmethod
     @abstractmethod
-    def get_xml_data(self, root: ET.Element) -> dict:
-        """function to return states and transitions from xml
+    def get_xml_data(self, xml_file: str) -> dict:
+        """Extract the necessary data from the xml file, creating a dictionary
+        used to create state machines in the expected Cosmic framework format.
 
         Args:
-            root (ET.Element)
+            xml_file (str): Path to the xml file.
 
         Returns:
-            tuple[dict,dict]
+            dict: A dictionary containing the necessary data to create state
+                machines in the Cosmic framework format.
         """
         raise NotImplementedError()
 
+    @staticmethod
     @abstractmethod
     def print_dict(self, result_dict: dict) -> None:
-        """function to print dict
+        """Print the result dictionary in a human-readable format.
 
         Args:
-            result_dict (dict)
+            result_dict (dict): The result dictionary to be printed.
         """
         raise NotImplementedError()
 
+    @staticmethod
     @abstractmethod
     def filter_conditions(self, declaration: str) -> list:
-        """function to extract function names from xml
+        """Filter the conditions from the declaration, returning a list of
+        function names.
 
         Args:
-            declaration (str)
+            declaration (str): The declaration of the xml file.
 
         Returns:
-            list
+            list: A list of function names.
         """
         raise NotImplementedError()
