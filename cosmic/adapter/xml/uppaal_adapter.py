@@ -35,18 +35,27 @@ class UppaalAdapter(Adapter):
                 result[agent_name]["initial_state"] = states[0]
 
             for transition in template.findall("transition"):
+                filtered_unless = []
+                guard_label = transition.find("label[@kind='guard']")
+
+                if guard_label is not None:
+                    unless = guard_label.text
+                    filtered_unless = self.filter_unless_names(unless)
+
                 source_id = transition.find("source").get("ref")
                 target_id = transition.find("target").get("ref")
                 source_name = id_to_state.get(source_id)
                 target_name = id_to_state.get(target_id)
 
                 transition = {
-                        "trigger": f"{source_name}_to_{target_name}",
-                        "source": source_name,
-                        "dest": target_name,
-                    }
+                    "trigger": f"{source_name}_to_{target_name}",
+                    "source": source_name,
+                    "dest": target_name,
+                }
                 if len(filtered_conditions) > 0:
                     transition["conditions"] = filtered_conditions
+                if len(filtered_unless) > 0:
+                    transition["unless"] = filtered_unless
                 result[agent_name]["transitions"].append(transition)
 
         return result
@@ -68,3 +77,16 @@ class UppaalAdapter(Adapter):
                 function_names.append(name)
 
         return function_names
+
+    def filter_unless_names(self, guard: str) -> list:
+
+        unless_names = []
+        conditions = guard.split("&&")
+
+        for condition in conditions:
+            condition = condition.strip()
+            if condition.startswith("!"):
+                condition = condition.split("(")[0]
+                unless_names.append(condition[1:])
+
+        return unless_names
