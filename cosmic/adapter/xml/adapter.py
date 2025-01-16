@@ -1,5 +1,6 @@
-from abc import abstractmethod, ABC
 import xml.etree.ElementTree as ET
+from abc import abstractmethod, ABC
+from typing import Dict, List
 
 
 class Adapter(ABC):
@@ -44,14 +45,20 @@ class Adapter(ABC):
 
     @staticmethod
     @abstractmethod
-    def filter_conditions(self, declaration: str) -> list:
-        """Filter the conditions from the declaration, returning a list of
-        function names.
-
+    def filter_conditions(self, label_text: str) -> Dict[str, List[str]]:
+        """Process the label text to find each of its declared conditions,
+        and unless (negative conditions), returning a dictionary with each of
+        them, in the following format:
+        ``` python
+        result_dict = {
+            "conditions": ["cond1", "cond2"],
+            "unless": ["cond3", "cond4"],
+        }
+        ```
         Args:
-            declaration (str): The declaration of the xml file.
+            label_text (str): The label text to be processed.
 
         Returns:
-            list: A list of function names.
+            dict: A dictionary containing the conditions and unless.
         """
         raise NotImplementedError()

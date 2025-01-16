@@ -1,5 +1,11 @@
+import re
 import xml.etree.ElementTree as ET
+
 from cosmic.adapter.xml.adapter import Adapter
+from functools import reduce
+
+from typing import Dict, List, Tuple
+from collections import defaultdict
 
 
 class UppaalAdapter(Adapter):
@@ -16,18 +22,154 @@ class UppaalAdapter(Adapter):
         return root
 
     @staticmethod
-    def filter_conditions(declaration: str) -> list:
+    def declare_functions(
+        conditions: List[str],
+        unless: List[str],
+    ) -> Dict[str, List[str]]:
+        """Filters the function names from the conditions and unless
+        lists, returning a dictionary with each of the declared functions,
+        and the anonymous functions converted to function names. Those
+        should be implemented at the machine model.
+
+        Args:
+            conditions (List[str]): The list of conditions.
+            unless (List[str]): The list of unless conditions.
+
+        Returns:
+            Dict[str, List[str]]: A dictionary containing the declared
+                functions.
+        """
+
+        def create_func_name(condition: str) -> str:
+            """Resolve the function name from the condition.
+            :Warning: This function is implemented just as a placeholder.
+            It is advised to not declare anonymous functions in the xml file.
+
+            Args:
+                condition (str): The condition to be resolved.
+
+            Returns:
+                str: the function name.
+            """
+            cond_name = condition.split(" ")[0]
+            return f'{cond_name}_eval'
+
+        is_function = r"^\s*\w+\s*\(.*\)\s*$"
+        declared_functions = set()
+        result_dict = defaultdict(list)
+        for condition in conditions:
+            if re.match(is_function, condition):
+                f_name = condition.split("(")[0].strip()
+                declared_functions.add(f_name)
+                result_dict["conditions"].append(f_name)
+            else:
+                f_name = create_func_name(condition)
+                if f_name not in declared_functions:
+                    result_dict["conditions"].append(f_name)
+                    declared_functions.add(f_name)
+        for declaration in unless:
+            if re.match(is_function, declaration):
+                f_name = declaration.split("(")[0].strip()
+                declared_functions.add(f_name)
+                result_dict["unless"].append(f_name)
+            else:
+                f_name = create_func_name(declaration)
+                if f_name not in declared_functions:
+                    result_dict["unless"].append(f_name)
+                    declared_functions.add(f_name)
+        result_dict["declared_functions"] = list(declared_functions)
+        return dict(result_dict)
+
+    @staticmethod
+    def filter_conditions(label_text: str) -> Dict[str, List[str]]:
         # documentations provided by the `Adapter` base class
-        function_names = []
+        conditions = list()
+        unless = list()
 
-        for line in declaration.splitlines():
-            line = line.strip()
-            if line.startswith("bool"):
+        guards_sublists = [guard.split("||")
+                           for guard in label_text.split("&&")]
+        guards = reduce(
+            lambda acc, curr: acc.extend(curr) or acc,
+            guards_sublists,
+            list(),
+        )
+        for guard in guards:
+            text = guard.strip()
+            if text.startswith("!"):
+                unless.append(text[1:])
+            else:
+                conditions.append(text)
 
-                name = line.split()[1].split("(")[0]
-                function_names.append(name)
+        declared_functions_dict = UppaalAdapter.declare_functions(
+            conditions,
+            unless,
+        )
 
-        return function_names
+        return declared_functions_dict
+
+    @staticmethod
+    def filter_updates(label_text: str) -> Dict[str, List[str]]:
+        """Process the label text to find each of its declared updates,
+        returning a dictionary with each of them.
+
+        Args:
+            label_text (str): The label text to be processed.
+
+        Returns:
+            Dict[str, List[str]]: A dictionary containing the updates.
+        """
+        updates = [updt.strip() for updt in label_text.split(",")]
+        result_dict = UppaalAdapter.declare_functions(updates, [])
+        return {
+            "after": result_dict["conditions"],
+            "declared_functions": result_dict["declared_functions"],
+        }
+
+    @staticmethod
+    def evaluate_transition(
+        transition: ET.Element,
+    ) -> Tuple[
+        bool,
+        Dict[str, List[str]],
+    ]:
+        """Evaluates a given transition to understand if it has any labels,
+        and where in the transition structure they should be placed.
+        Returns a Tuple, containing two elements.
+        The first element is a boolean indicating if the transition has a
+        label.
+        The second one is a dictionary with each of the found transition labels
+        processed, along with the declared functions.
+
+        Args:
+            transition (ET.Element): The transition XML element.
+
+        Returns:
+            Tuple[bool, Dict[str, List[str]]]: A tuple containing a boolean
+                indicating if the transition has a label, and a dictionary
+                containing the processed labels.
+        """
+        has_label = False
+        content = None
+
+        transition_labels = transition.findall("label")
+        if len(transition_labels) == 0:
+            return has_label, content
+
+        has_label = True
+        content = dict()
+        declared_functions = set()
+        for label in transition_labels:
+            if label.get("kind") == "guard":
+                result_dict = UppaalAdapter.filter_conditions(label.text)
+                for key, value in result_dict.items():
+                    content[key] = value
+                declared_functions.update(result_dict["declared_functions"])
+            if label.get("kind") == "update":
+                result_dict = UppaalAdapter.filter_updates(label.text)
+                content["after"] = result_dict["after"]
+                declared_functions.update(result_dict["declared_functions"])
+
+        return has_label, content
 
     @staticmethod
     def get_xml_data(xml_file: str) -> dict:
@@ -36,7 +178,7 @@ class UppaalAdapter(Adapter):
         result = {}
 
         for template in root.findall(".//template"):
-            agent_name = template.find("name").text
+            agent_name = (template.find("name").text).replace("_", "")
             result[agent_name] = {
                 "initial_state": "",
                 "states": [],
@@ -44,12 +186,6 @@ class UppaalAdapter(Adapter):
             }
             id_to_state = {}
             states = []
-
-            for declaration in template.findall("declaration"):
-                condition = declaration.text
-                filtered_conditions = UppaalAdapter.filter_conditions(
-                    condition,
-                )
 
             for location in template.findall("location"):
                 state_id = location.get("id")
@@ -60,18 +196,32 @@ class UppaalAdapter(Adapter):
                 result[agent_name]["initial_state"] = states[0]
 
             for transition in template.findall("transition"):
+                # might have selections, guards, synchronisation,
+                # updates, and weights
+                # - synchronisations not handled yet
+                # - selections might not be included in the code,
+                # probably being used only by the model
+                # - updates can be translated to `after` in transitions
                 source_id = transition.find("source").get("ref")
                 target_id = transition.find("target").get("ref")
                 source_name = id_to_state.get(source_id)
                 target_name = id_to_state.get(target_id)
+                has_label, content = UppaalAdapter.evaluate_transition(
+                    transition,
+                )
 
                 transition = {
                         "trigger": f"{source_name}_to_{target_name}",
                         "source": source_name,
                         "dest": target_name,
                     }
-                if len(filtered_conditions) > 0:
-                    transition["conditions"] = filtered_conditions
+                if has_label:
+                    # The declared functions must be implemented in the
+                    # machine model.
+                    if 'declared_functions' in content.keys():
+                        del content['declared_functions']
+                    for key, value in content.items():
+                        transition[key] = value
                 result[agent_name]["transitions"].append(transition)
 
         return result
