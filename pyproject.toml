@@ -42,7 +42,7 @@ target-version = ["py310", "py311", "py312"]
 include = '\.pyi?$'
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov=src --cov-report=term-missing"
+addopts = "-vv --cov=cosmic --cov-report=term-missing"
 testpaths = [
     "tests",
 ]

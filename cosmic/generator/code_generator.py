@@ -77,8 +77,7 @@ class CodeGenerator:
         if not xml_file.exists() or not xml_file.is_file():
             raise FileNotFoundError(f"File {xml_file} not found.")
 
-        root = self.xml_adapter.parse_xml(xml_file.resolve())
-        result_dict = self.xml_adapter.get_xml_data(root)
+        result_dict = self.xml_adapter.get_xml_data(xml_file.resolve())
 
         if not output_dir.exists():
             output_dir.mkdir()

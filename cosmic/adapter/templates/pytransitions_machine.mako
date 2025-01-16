@@ -16,7 +16,11 @@ class ${agent_name}(GraphMachine):
         )
         % endfor
 
-        states = ${states}
+        states = [
+            % for state in states:
+            ${state},
+            % endfor
+        ]
 
         transitions = [
             % for transition in transitions:
@@ -50,10 +54,7 @@ class ${agent_name}(GraphMachine):
         available_transitions = self.get_triggers(self.state)
         available_transitions = available_transitions[len(self.states):]
 
-        LOGGER.debug(f'Available transitions: {available_transitions}')
-
         for curr_transition in available_transitions:
             may_method_result = self.may_trigger(curr_transition)
             if may_method_result:
-                LOGGER.debug(f'Transition executed: {curr_transition}')
                 self.trigger(curr_transition)
