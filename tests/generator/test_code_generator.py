@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from src.generator.code_generator import CodeGenerator
+from cosmic.generator.code_generator import CodeGenerator
 from unittest.mock import MagicMock
 
 
@@ -43,15 +43,10 @@ def result_dict_mock():
 
 
 def test_get_template_file_returns_a_valid_file():
-    transitions_template = Path(
-        'src',
-        'adapter',
-        'templates',
-        'pytransitions_machine.mako',
-    )
-    assert CodeGenerator.get_template_file(
+    template_file = CodeGenerator.get_template_file(
         'pytransitions',
-    ) == transitions_template
+    )
+    assert template_file.exists() and template_file.is_file()
 
 
 def test_get_template_file_raises_not_implemented_error():
