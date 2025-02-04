@@ -2,6 +2,7 @@ import re
 import xml.etree.ElementTree as ET
 
 from cosmic.adapter.xml.adapter import Adapter
+from cosmic.utils.string_oper import generate_function_name
 from functools import reduce
 
 from typing import Dict, List, Tuple
@@ -40,20 +41,6 @@ class UppaalAdapter(Adapter):
                 functions.
         """
 
-        def create_func_name(condition: str) -> str:
-            """Resolve the function name from the condition.
-            :Warning: This function is implemented just as a placeholder.
-            It is advised to not declare anonymous functions in the xml file.
-
-            Args:
-                condition (str): The condition to be resolved.
-
-            Returns:
-                str: the function name.
-            """
-            cond_name = condition.split(" ")[0]
-            return f'{cond_name}_eval'
-
         is_function = r"^\s*\w+\s*\(.*\)\s*$"
         declared_functions = set()
         result_dict = defaultdict(list)
@@ -63,7 +50,7 @@ class UppaalAdapter(Adapter):
                 declared_functions.add(f_name)
                 result_dict["conditions"].append(f_name)
             else:
-                f_name = create_func_name(condition)
+                f_name = generate_function_name(condition)
                 if f_name not in declared_functions:
                     result_dict["conditions"].append(f_name)
                     declared_functions.add(f_name)
@@ -73,7 +60,7 @@ class UppaalAdapter(Adapter):
                 declared_functions.add(f_name)
                 result_dict["unless"].append(f_name)
             else:
-                f_name = create_func_name(declaration)
+                f_name = generate_function_name(declaration)
                 if f_name not in declared_functions:
                     result_dict["unless"].append(f_name)
                     declared_functions.add(f_name)
