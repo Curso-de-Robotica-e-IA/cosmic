@@ -171,6 +171,3 @@ cython_debug/
 .pypirc
 /generated_code/*
 cosmic/generator/tmp/*
-
-# poetry
-poetry.lock
