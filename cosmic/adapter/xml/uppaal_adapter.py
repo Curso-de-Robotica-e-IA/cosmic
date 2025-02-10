@@ -214,7 +214,7 @@ class UppaalAdapter(Adapter):
         return result
 
     @staticmethod
-    def print_dict(result_dict: dict) -> None:
+    def print_dict(result_dict: dict) -> None:  # pragma: no cover
         # documentations provided by the `Adapter` base class
         for agent, _agent_data in result_dict.items():
             print(f"agent: {agent}")

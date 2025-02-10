@@ -24,7 +24,7 @@ def transition_element() -> ET.Element:
         x="-1071",
         y="-348",
     )
-    sync_label.text = "y = 0, in_op = false, reset_queue()"
+    sync_label.text = "y == 0, in_op == false, reset_queue()"
     ET.SubElement(transition, "nail", x="-790", y="-331")
     return transition
 
@@ -47,13 +47,17 @@ def test_find_xml_root(xml_file):
         [
             (
                 [
-                    "place < buffer[rid].length",
+                    "place < buffer_length",
                     "time <= time_buffer",
                 ],
                 [],
                 {
-                    "conditions": ["place_eval", "time_eval"],
-                    "declared_functions": ["time_eval", "place_eval"],
+                    "conditions": [
+                        "place_lt_buffer_length", "time_lte_time_buffer",
+                    ],
+                    "declared_functions": [
+                        "time_lte_time_buffer", "place_lt_buffer_length",
+                    ],
                 },
             ),
             (
@@ -73,11 +77,11 @@ def test_find_xml_root(xml_file):
                 ["dependencies_met()", "retry > 3"],
                 ["halt_op()"],
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
                     "unless": ["halt_op"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
+                        "retry_gt_three",
                         "halt_op",
                     ],
                 }
@@ -86,12 +90,12 @@ def test_find_xml_root(xml_file):
                 ["dependencies_met()", "retry > 3"],
                 ["time <= time_buffer"],
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
-                    "unless": ["time_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
+                    "unless": ["time_lte_time_buffer"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
-                        "time_eval",
+                        "retry_gt_three",
+                        "time_lte_time_buffer",
                     ],
                 }
             )
@@ -114,10 +118,14 @@ def test_declare_functions(conditions, unless, expected):
         'label_text, expected',
         [
             (
-                "place < buffer[rid].length && time <= time_buffer",
+                "place < buffer_length && time <= time_buffer",
                 {
-                    "conditions": ["place_eval", "time_eval"],
-                    "declared_functions": ["time_eval", "place_eval"],
+                    "conditions": [
+                        "place_lt_buffer_length", "time_lte_time_buffer",
+                    ],
+                    "declared_functions": [
+                        "time_lte_time_buffer", "place_lt_buffer_length",
+                    ],
                 },
             ),
             (
@@ -135,11 +143,11 @@ def test_declare_functions(conditions, unless, expected):
             (
                 "dependencies_met() && retry > 3 || !halt_op()",
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
                     "unless": ["halt_op"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
+                        "retry_gt_three",
                         "halt_op",
                     ],
                 }
@@ -174,9 +182,9 @@ def test_evaluate_transition(transition_element):
     assert set(content.keys()) == {
         'conditions', 'unless', 'after', 'declared_functions',
     }
-    assert content['conditions'] == ['x_eval', 'force_stop']
+    assert content['conditions'] == ['x_eq_zero', 'force_stop']
     assert content['unless'] == ['activated']
-    assert content['after'] == ['y_eval', 'in_op_eval', 'reset_queue']
+    assert content['after'] == ['y_eq_zero', 'in_op_eq_false', 'reset_queue']
 
 
 def test_get_xml_data(xml_file):
