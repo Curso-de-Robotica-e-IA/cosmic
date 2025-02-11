@@ -1,6 +1,11 @@
 import pytest
 from pathlib import Path
 from cosmic.generator.code_generator import CodeGenerator
+from cosmic.adapter.entities.machine_template import (
+    MachineTemplate,
+    State,
+    Transition,
+)
 from unittest.mock import MagicMock
 
 
@@ -22,23 +27,43 @@ def xml_file():
 @pytest.fixture
 def result_dict_mock():
     return {
-        'MockMachine': {
-            'states': ['A', 'B', 'C'],
-            'transitions': [
-                {
-                    'name': 't1',
-                    'source': 'A',
-                    'dest': 'B',
-                    'conditions': ['is_valid'],
-                },
-                {
-                    'name': 't2',
-                    'source': 'B',
-                    'dest': 'C',
-                },
+        'MockMachine': MachineTemplate(
+            initial_state='start',
+            states=[
+                State(name='start'),
+                State(name='decision'),
+                State(name='success'),
+                State(name='retry'),
+                State(name='finish'),
             ],
-            'initial_state': 'A',
-        }
+            transitions=[
+                Transition(
+                    dest='finish',
+                    source='success',
+                    trigger='success_to_finish',
+                ),
+                Transition(
+                    dest='decision',
+                    source='retry',
+                    trigger='retry_to_decision',
+                ),
+                Transition(
+                    dest='success',
+                    source='decision',
+                    trigger='decision_to_success',
+                ),
+                Transition(
+                    dest='retry',
+                    source='decision',
+                    trigger='decision_to_retry',
+                ),
+                Transition(
+                    dest='decision',
+                    source='start',
+                    trigger='start_to_decision',
+                ),
+            ]
+        ),
     }
 
 
