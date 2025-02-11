@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+</declaration>
+	<template>
+		<name x="5" y="5">BranchMachine</name>
+		<declaration>int systemFailure[2] = {1, 99};
+</declaration>
+		<location id="id0" x="-340" y="0">
+			<name x="-350" y="-34">Start</name>
+			<committed/>
+		</location>
+		<location id="id1" x="-238" y="0">
+			<name x="-255" y="8">Decision</name>
+		</location>
+		<location id="id2" x="0" y="0">
+			<name x="-25" y="8">Success</name>
+		</location>
+		<location id="id3" x="-170" y="-136">
+			<name x="-195" y="-170">Retry</name>
+		</location>
+		<location id="id4" x="0" y="-136">
+			<name x="-25" y="-170">Finish</name>
+		</location>
+		<branchpoint id="id5" x="-170" y="0"/>
+		<init ref="id0"/>
+		<transition id="id6">
+			<source ref="id2"/>
+			<target ref="id4"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<nail x="-238" y="-136"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="probability" x="-153" y="-17">systemFailure[1]</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="probability" x="-221" y="-76">systemFailure[0]</label>
+		</transition>
+		<transition id="id10" controllable="false">
+			<source ref="id1"/>
+			<target ref="id5"/>
+		</transition>
+		<transition id="id11">
+			<source ref="id0"/>
+			<target ref="id1"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = BranchMachine();
+// List one or more processes to be composed into a system.
+system Process;
+</system>
+	<queries>
+		<query>
+			<formula>A[] (deadlock imply Process.Finish)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-02-11 09:30:20 -0300">
+			</result>
+		</query>
+	</queries>
+</nta>

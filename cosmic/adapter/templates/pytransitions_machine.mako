@@ -11,14 +11,14 @@ class ${agent_name}(GraphMachine):
         """Constructor of the base `${agent_name}` class.
         """
         % for state in states:
-        ${state} = State(
-            name='${state}',
+        ${state['name']} = State(
+            name='${state['name']}',
         )
         % endfor
 
         states = [
             % for state in states:
-            ${state},
+            ${state['name']},
             % endfor
         ]
 
