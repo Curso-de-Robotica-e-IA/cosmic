@@ -1,40 +1,10 @@
 import pytest
-import xml.etree.ElementTree as ET
 from cosmic.adapter.xml.uppaal_adapter import UppaalAdapter
-
-
-@pytest.fixture
-def transition_element() -> ET.Element:
-    transition = ET.Element('transition', id='id15')
-    ET.SubElement(transition, 'source', ref='1d6')
-    ET.SubElement(transition, 'target', ref='1d9')
-
-    guard_label = ET.SubElement(
-        transition,
-        "label",
-        kind="guard",
-        x="-1088",
-        y="-382",
-    )
-    guard_label.text = "!activated() && x == 0 || force_stop()"
-    sync_label = ET.SubElement(
-        transition,
-        "label",
-        kind="update",
-        x="-1071",
-        y="-348",
-    )
-    sync_label.text = "y = 0, in_op = false, reset_queue()"
-    ET.SubElement(transition, "nail", x="-790", y="-331")
-    return transition
-
-
-@pytest.fixture
-def simple_transition_element() -> ET.Element:
-    transition = ET.Element('transition', id='id15')
-    ET.SubElement(transition, 'source', ref='1d6')
-    ET.SubElement(transition, 'target', ref='1d9')
-    return transition
+from cosmic.adapter.entities.machine_template import (
+    MachineTemplate,
+    State,
+    Transition,
+)
 
 
 def test_find_xml_root(xml_file):
@@ -47,13 +17,17 @@ def test_find_xml_root(xml_file):
         [
             (
                 [
-                    "place < buffer[rid].length",
+                    "place < buffer_length",
                     "time <= time_buffer",
                 ],
                 [],
                 {
-                    "conditions": ["place_eval", "time_eval"],
-                    "declared_functions": ["time_eval", "place_eval"],
+                    "conditions": [
+                        "place_lt_buffer_length", "time_lte_time_buffer",
+                    ],
+                    "declared_functions": [
+                        "time_lte_time_buffer", "place_lt_buffer_length",
+                    ],
                 },
             ),
             (
@@ -73,11 +47,11 @@ def test_find_xml_root(xml_file):
                 ["dependencies_met()", "retry > 3"],
                 ["halt_op()"],
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
                     "unless": ["halt_op"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
+                        "retry_gt_three",
                         "halt_op",
                     ],
                 }
@@ -86,12 +60,12 @@ def test_find_xml_root(xml_file):
                 ["dependencies_met()", "retry > 3"],
                 ["time <= time_buffer"],
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
-                    "unless": ["time_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
+                    "unless": ["time_lte_time_buffer"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
-                        "time_eval",
+                        "retry_gt_three",
+                        "time_lte_time_buffer",
                     ],
                 }
             )
@@ -114,10 +88,14 @@ def test_declare_functions(conditions, unless, expected):
         'label_text, expected',
         [
             (
-                "place < buffer[rid].length && time <= time_buffer",
+                "place < buffer_length && time <= time_buffer",
                 {
-                    "conditions": ["place_eval", "time_eval"],
-                    "declared_functions": ["time_eval", "place_eval"],
+                    "conditions": [
+                        "place_lt_buffer_length", "time_lte_time_buffer",
+                    ],
+                    "declared_functions": [
+                        "time_lte_time_buffer", "place_lt_buffer_length",
+                    ],
                 },
             ),
             (
@@ -135,11 +113,11 @@ def test_declare_functions(conditions, unless, expected):
             (
                 "dependencies_met() && retry > 3 || !halt_op()",
                 {
-                    "conditions": ["dependencies_met", "retry_eval"],
+                    "conditions": ["dependencies_met", "retry_gt_three"],
                     "unless": ["halt_op"],
                     "declared_functions": [
                         "dependencies_met",
-                        "retry_eval",
+                        "retry_gt_three",
                         "halt_op",
                     ],
                 }
@@ -159,24 +137,26 @@ def test_filter_conditions(label_text, expected):
             assert func in result['declared_functions']
 
 
-def test_evalute_transition_without_labels(simple_transition_element):
+def test_evalute_transition_without_labels(uppal_simple_transition_element):
     has_label, content = UppaalAdapter.evaluate_transition(
-        simple_transition_element,
+        uppal_simple_transition_element,
     )
     assert not has_label
     assert content is None
 
 
-def test_evaluate_transition(transition_element):
-    has_label, content = UppaalAdapter.evaluate_transition(transition_element)
+def test_evaluate_transition(uppal_transition_element):
+    has_label, content = UppaalAdapter.evaluate_transition(
+        uppal_transition_element,
+    )
     # bad test assertion, but dictionaries...
     assert has_label
     assert set(content.keys()) == {
         'conditions', 'unless', 'after', 'declared_functions',
     }
-    assert content['conditions'] == ['x_eval', 'force_stop']
+    assert content['conditions'] == ['x_eq_zero', 'force_stop']
     assert content['unless'] == ['activated']
-    assert content['after'] == ['y_eval', 'in_op_eval', 'reset_queue']
+    assert content['after'] == ['y_eq_zero', 'in_op_eq_false', 'reset_queue']
 
 
 def test_get_xml_data(xml_file):
@@ -184,3 +164,137 @@ def test_get_xml_data(xml_file):
     expected_agents = {'RobotAssembler', 'HumanReceiver',
                        'HumanValidator', 'Sector', 'RobotDeliver'}
     assert set(result_dict.keys()) == expected_agents
+
+
+def test_build_transition(uppal_transition_element):
+    id_to_state = {
+        '1d1': 'state1',
+        '1d2': 'state2',
+        '1d3': 'state3',
+        '1d4': 'state4',
+        '1d5': 'state5',
+        '1d6': 'state6',
+        '1d7': 'state7',
+        '1d8': 'state8',
+        '1d9': 'state9',
+    }
+
+    expected = Transition(
+        trigger='state6_to_state9',
+        source='state6',
+        dest='state9',
+        conditions=['x_eq_zero', 'force_stop'],
+        unless=['activated'],
+        after=['y_eq_zero', 'in_op_eq_false', 'reset_queue'],
+        declared_functions=[
+            'x_eq_zero', 'force_stop', 'activated',
+        ],
+    )
+
+    result = UppaalAdapter.build_transition(
+        id_to_state_map=id_to_state,
+        edge=uppal_transition_element,
+    )
+    assert result.keys() == expected.keys()
+    # bad test assertion, but dictionaries...
+    for key in expected.keys():
+        result_content = result[key]
+        if isinstance(result_content, list):
+            assert result_content.sort() == expected[key].sort()
+        else:
+            assert result_content == expected[key]
+
+
+def test_parse_transitions(uppaal_branchpoint_machine):
+    id_to_state = {
+        'id0': 'start',
+        'id1': 'decision',
+        'id2': 'success',
+        'id3': 'retry',
+        'id4': 'finish',
+    }
+    transitions_list = uppaal_branchpoint_machine.findall('transition')
+    branchpoints_list = uppaal_branchpoint_machine.findall('branchpoint')
+
+    result = UppaalAdapter.parse_transitions(
+        id_to_state=id_to_state,
+        element_transitions=transitions_list,
+        element_branchpoints=branchpoints_list,
+    )
+
+    expected = [
+        Transition(
+            trigger='start_to_decision',
+            source='start',
+            dest='decision',
+        ),
+        Transition(
+            trigger='decision_to_retry',
+            source='decision',
+            dest='retry',
+        ),
+        Transition(
+            trigger='decision_to_success',
+            source='decision',
+            dest='success',
+        ),
+        Transition(
+            trigger='retry_to_decision',
+            source='retry',
+            dest='decision',
+        ),
+        Transition(
+            trigger='success_to_finish',
+            source='success',
+            dest='finish',
+        ),
+    ]
+
+    assert len(result) == len(expected)
+    for result_transition in result:
+        assert result_transition in expected
+
+
+def test_parse_template(uppaal_branchpoint_machine):
+    result = UppaalAdapter.parse_template(
+        uppaal_branchpoint_machine,
+    )
+    expected = MachineTemplate(
+        initial_state='start',
+        states=[
+            State(name='start'),
+            State(name='decision'),
+            State(name='success'),
+            State(name='retry'),
+            State(name='finish'),
+        ],
+        transitions=[
+            Transition(
+                dest='finish',
+                source='success',
+                trigger='success_to_finish',
+            ),
+            Transition(
+                dest='decision',
+                source='retry',
+                trigger='retry_to_decision',
+            ),
+            Transition(
+                dest='success',
+                source='decision',
+                trigger='decision_to_success',
+            ),
+            Transition(
+                dest='retry',
+                source='decision',
+                trigger='decision_to_retry',
+            ),
+            Transition(
+                dest='decision',
+                source='start',
+                trigger='start_to_decision',
+            ),
+        ]
+    )
+
+    assert result == expected
