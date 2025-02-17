@@ -22,7 +22,7 @@ def uppal_transition_element() -> ET.Element:
     sync_label = ET.SubElement(
         transition,
         "label",
-        kind="update",
+        kind="assignment",
         x="-1071",
         y="-348",
     )

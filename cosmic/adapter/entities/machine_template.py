@@ -38,3 +38,4 @@ class MachineTemplate(TypedDict):
     initial_state: str
     states: List[State]
     transitions: List[Transition]
+    declared_functions: NotRequired[List[str]]
