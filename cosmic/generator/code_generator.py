@@ -42,6 +42,28 @@ class CodeGenerator:
             raise NotImplementedError("Type not supported yet.")
         return ref_files.get(code_dialect)
 
+    @staticmethod
+    def get_template_model_file(code_dialect: DIALECTS):
+        """Return the template file for the code generation.
+
+        Args:
+            code_dialect (DIALECTS): The dialect of the code to be generated.
+
+        Raises:
+            NotImplementedError: If the dialect is not supported.
+
+        Returns:
+            file: The template file for the code generation.
+        """
+        ref_files = {
+            "pytransitions": Path(
+                BASE_PATH, "adapter", "templates", "pytransitions_model.mako"
+            ),
+        }
+        if code_dialect not in ref_files.keys():
+            raise NotImplementedError("Type not supported yet.")
+        return ref_files.get(code_dialect)
+
     def __init__(
         self,
         xml_dialect: XML_DIALECTS,
@@ -49,8 +71,13 @@ class CodeGenerator:
     ) -> None:
         self.xml_adapter = ModelFactory.xml_model_factory(xml_dialect)
         self.template_file = self.get_template_file(code_dialect)
+        self.template_model_file = self.get_template_model_file(code_dialect)
         self.template = Template(
             filename=self.template_file.as_posix(),
+            module_directory=self.temp_folder,
+        )
+        self.template_model = Template(
+            filename=self.template_model_file.as_posix(),
             module_directory=self.temp_folder,
         )
 
@@ -93,6 +120,9 @@ class CodeGenerator:
                 output_file = Path(output_dir).joinpath(
                     f"{to_snake_case(agent_name)}.py",
                 )
+                model_file = Path(output_dir).joinpath(
+                    f"{to_snake_case(agent_name)}_model.py",
+                )
                 progress.update(
                     task_description=f"Generating code for {agent_name}...",
                     task_id=codegen,
@@ -105,4 +135,13 @@ class CodeGenerator:
                             **data,
                         ),
                     )
+                declared_functions = data.get("declared_functions", [])
+                if len(declared_functions) > 0:
+                    with open(model_file, "w") as mfile:
+                        mfile.write(
+                            self.template_model.render(
+                                agent_name=agent_name,
+                                declared_functions=declared_functions,
+                            ),
+                        )
         shutil.rmtree(self.temp_folder)

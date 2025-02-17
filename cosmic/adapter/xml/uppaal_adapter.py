@@ -288,7 +288,42 @@ class UppaalAdapter(Adapter):
         return transitions_list
 
     @staticmethod
+    def filter_declarations(
+        transitions_list: List[dict],
+    ) -> Tuple[List[Transition], List[str]]:
+        """Filters the declared functions from the transitions list,
+        returning a tuple containing the filtered transitions and the
+        declared functions. The declared functions are unique.
+
+        Args:
+            transitions_list (List[dict]): The list of transitions.
+
+        Returns:
+            Tuple[List[Transition], List[str]]: A tuple containing the
+                filtered transitions and the declared functions.
+        """
+        declared_functions = set()
+        updated_transitions = list()
+        for transition in transitions_list:
+            for func_list in transition.values():
+                if isinstance(func_list, list):
+                    declared_functions.update(func_list)
+            if transition.get('declared_functions', None) is not None:
+                del transition['declared_functions']
+            updated_transitions.append(transition)
+        return updated_transitions, list(declared_functions)
+
+    @staticmethod
     def parse_template(template: ET.Element) -> MachineTemplate:
+        """Parses a template from the xml file, which represents a single
+        automaton in the Uppaal model.
+
+        Args:
+            template (ET.Element): The template element.
+
+        Returns:
+            MachineTemplate: A MachineTemplate object.
+        """
         locations = template.findall('location')
         transitions = template.findall('transition')
         branchpoints = template.findall('branchpoint')
@@ -309,11 +344,17 @@ class UppaalAdapter(Adapter):
             element_branchpoints=branchpoints,
         )
 
-        return MachineTemplate(
+        transitions, declared_functions = UppaalAdapter.filter_declarations(
+            transitions_list,
+        )
+        machine_template = MachineTemplate(
             initial_state=states[0]['name'],
             states=states,
             transitions=transitions_list,
         )
+        if len(declared_functions) > 0:
+            machine_template['declared_functions'] = declared_functions
+        return machine_template
 
     @staticmethod
     def get_xml_data(xml_file: str) -> Dict[str, MachineTemplate]:
