@@ -52,20 +52,24 @@ class UppaalAdapter(Adapter):
         for condition in conditions:
             if re.match(is_function, condition):
                 f_name = condition.split("(")[0].strip()
+                f_name = to_snake_case(f_name)
                 declared_functions.add(f_name)
                 result_dict["conditions"].append(f_name)
             else:
                 f_name = generate_function_name(condition)
+                f_name = to_snake_case(f_name)
                 if f_name not in declared_functions:
                     result_dict["conditions"].append(f_name)
                     declared_functions.add(f_name)
         for declaration in unless:
             if re.match(is_function, declaration):
                 f_name = declaration.split("(")[0].strip()
+                f_name = to_snake_case(f_name)
                 declared_functions.add(f_name)
                 result_dict["unless"].append(f_name)
             else:
                 f_name = generate_function_name(declaration)
+                f_name = to_snake_case(f_name)
                 if f_name not in declared_functions:
                     result_dict["unless"].append(f_name)
                     declared_functions.add(f_name)

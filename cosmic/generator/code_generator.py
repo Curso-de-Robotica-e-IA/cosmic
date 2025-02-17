@@ -4,6 +4,7 @@ from cosmic.adapter.xml.model_factory import (
     ModelFactory,
     DIALECTS as XML_DIALECTS,
 )
+from cosmic.utils.string_oper import to_snake_case
 from mako.template import Template
 from pathlib import Path
 from rich.progress import Progress
@@ -89,7 +90,9 @@ class CodeGenerator:
             )
             advance_amount = 100 / len(result_dict)
             for agent_name, data in result_dict.items():
-                output_file = Path(output_dir).joinpath(f"{agent_name}.py")
+                output_file = Path(output_dir).joinpath(
+                    f"{to_snake_case(agent_name)}.py",
+                )
                 progress.update(
                     task_description=f"Generating code for {agent_name}...",
                     task_id=codegen,
