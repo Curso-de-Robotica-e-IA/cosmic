@@ -160,7 +160,7 @@ class UppaalAdapter(Adapter):
                 for key, value in result_dict.items():
                     content[key] = value
                 declared_functions.update(result_dict["declared_functions"])
-            if label.get("kind") == "update":
+            if label.get("kind") == "assignment":
                 result_dict = UppaalAdapter.filter_updates(label.text)
                 content["after"] = result_dict["after"]
                 declared_functions.update(result_dict["declared_functions"])

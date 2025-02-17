@@ -41,7 +41,9 @@ def test_to_snake_case(name, expected):
         (
             "Upsala >= 256",
             "upsala_gte_two_hundred_and_fifty_six",
-        )
+        ),
+        ("aalborg++", "aalborg_increment"),
+        ("aalborg--", "aalborg_decrement"),
     ],
 )
 def test_generate_function_name(condition, expected):

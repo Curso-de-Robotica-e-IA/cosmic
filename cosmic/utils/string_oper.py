@@ -37,6 +37,10 @@ def generate_function_name(condition: str) -> str:
     }
     if condition.startswith("!"):
         condition = condition[1:]
+    if condition.endswith("++"):
+        condition = condition.replace("++", "_increment")
+    if condition.endswith("--"):
+        condition = condition.replace("--", "_decrement")
     components = condition.replace("\n", "").split(" ")
     components_processed = [None] * len(components)
     for idx, c in enumerate(components):
