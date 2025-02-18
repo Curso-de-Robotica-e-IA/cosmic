@@ -10,7 +10,7 @@ from cosmic.adapter.entities.machine_template import (
 from cosmic.utils.string_oper import generate_function_name, to_snake_case
 from functools import reduce
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Set
 from collections import defaultdict
 
 
@@ -314,6 +314,60 @@ class UppaalAdapter(Adapter):
         return updated_transitions, list(declared_functions)
 
     @staticmethod
+    def _format_state_functions(
+        label_text: str,
+    ) -> List[str]:
+        """Formats a label text string extracted from a location element
+        to a list of function names.
+
+        Args:
+            label_text (str): The label text to be processed.
+
+        Returns:
+            List[str]: A list of function names.
+        """
+        functions = list()
+        for func_name in label_text.split(", "):
+            func_name = func_name.strip()
+            par_idx = func_name.find("(")
+            func_name = func_name[:par_idx] if par_idx != -1 else func_name
+            functions.append(to_snake_case(func_name))
+
+        return functions
+
+    @staticmethod
+    def build_state(
+        location: ET.Element,
+    ) -> Tuple[State, Set[str]]:
+        """Builds a state object from the given location element.
+
+        Args:
+            location (ET.Element): The location element.
+
+        Returns:
+            Tuple[State, Set[str]]: A tuple containing the state object
+                and a set of declared functions.
+        """
+        state_name = to_snake_case(location.find("name").text)
+        on_enter_label = location.find('label[@kind="testcodeEnter"]')
+        on_exit_label = location.find('label[@kind="testcodeExit"]')
+        declared_functions = set()
+        on_enter, on_exit = None, None
+        state = State(name=state_name)
+        if on_enter_label is not None:
+            on_enter = UppaalAdapter._format_state_functions(
+                on_enter_label.text)
+            declared_functions.update(on_enter)
+            state['on_enter'] = on_enter
+
+        if on_exit_label is not None:
+            on_exit = UppaalAdapter._format_state_functions(on_exit_label.text)
+            declared_functions.update(on_exit)
+            state['on_exit'] = on_exit
+
+        return state, declared_functions
+
+    @staticmethod
     def parse_template(template: ET.Element) -> MachineTemplate:
         """Parses a template from the xml file, which represents a single
         automaton in the Uppaal model.
@@ -330,11 +384,12 @@ class UppaalAdapter(Adapter):
 
         id_state_map = dict()
         states = list()
+        model_functions = set()
         for loc in locations:
             state_name = to_snake_case(loc.find('name').text)
             state_id = loc.get('id')
-            # not handling on_enter and on_exit actions yet
-            state = State(name=state_name)
+            state, dec_functions = UppaalAdapter.build_state(loc)
+            model_functions.update(dec_functions)
             id_state_map[state_id] = state_name
             states.append(state)
 
@@ -347,13 +402,14 @@ class UppaalAdapter(Adapter):
         transitions, declared_functions = UppaalAdapter.filter_declarations(
             transitions_list,
         )
+        model_functions.update(set(declared_functions))
         machine_template = MachineTemplate(
             initial_state=states[0]['name'],
             states=states,
             transitions=transitions_list,
         )
-        if len(declared_functions) > 0:
-            machine_template['declared_functions'] = declared_functions
+        if len(model_functions) > 0:
+            machine_template['declared_functions'] = list(model_functions)
         return machine_template
 
     @staticmethod
