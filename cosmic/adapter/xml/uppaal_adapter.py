@@ -381,6 +381,7 @@ class UppaalAdapter(Adapter):
         locations = template.findall('location')
         transitions = template.findall('transition')
         branchpoints = template.findall('branchpoint')
+        initial_state_ref = template.find('init').get('ref')
 
         id_state_map = dict()
         states = list()
@@ -403,8 +404,9 @@ class UppaalAdapter(Adapter):
             transitions_list,
         )
         model_functions.update(set(declared_functions))
+        initial_state = id_state_map.get(initial_state_ref)
         machine_template = MachineTemplate(
-            initial_state=states[0]['name'],
+            initial_state=initial_state,
             states=states,
             transitions=transitions_list,
         )

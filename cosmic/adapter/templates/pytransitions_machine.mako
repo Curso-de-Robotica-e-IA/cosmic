@@ -51,7 +51,7 @@ class ${agent_name}(GraphMachine):
         Returns:
             The class attribute.
         """
-        self.model.__getattribute__(item)
+        return self.model.__getattribute__(item)
 
     def next_state(self):
         """Method for automatic execution of available transitions in each
