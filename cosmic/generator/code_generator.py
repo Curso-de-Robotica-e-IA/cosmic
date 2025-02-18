@@ -68,7 +68,9 @@ class CodeGenerator:
         self,
         xml_dialect: XML_DIALECTS,
         code_dialect: DIALECTS,
+        generate_model: bool = True
     ) -> None:
+        self.generate_model = generate_model
         self.xml_adapter = ModelFactory.xml_model_factory(xml_dialect)
         self.template_file = self.get_template_file(code_dialect)
         self.template_model_file = self.get_template_model_file(code_dialect)
@@ -136,7 +138,7 @@ class CodeGenerator:
                         ),
                     )
                 declared_functions = data.get("declared_functions", [])
-                if len(declared_functions) > 0:
+                if self.generate_model and len(declared_functions) > 0:
                     with open(model_file, "w") as mfile:
                         mfile.write(
                             self.template_model.render(

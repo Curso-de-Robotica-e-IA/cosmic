@@ -25,6 +25,7 @@ def main(
     code: str = Option('pytransitions', '--code', '-c', help='The dialect of the code to be generated'),  # noqa
     output: str = Option(..., '--output', '-o', help='The output directory for the generated code'),  # noqa
     input: str = Option(..., '--input', '-i', help='The path to the XML file'),  # noqa
+    generate_model: bool = Option(True, '--generate-model', '-m', help='Generate the model file'),  # noqa
 ):
     if ctx.invoked_subcommand:
         return
@@ -38,6 +39,7 @@ def main(
         cg = CodeGenerator(
             code_dialect=code,
             xml_dialect=xml,
+            generate_model=generate_model,
         )
         console.log(
             f'COSMIC Initialized using [code]{xml}[/code] and [code]{code}[/code].',  # noqa
