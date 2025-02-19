@@ -4,7 +4,23 @@ from pathlib import Path
 
 
 @pytest.fixture
-def uppal_transition_element() -> ET.Element:
+def uppaal_state_element() -> ET.Element:
+    """Fixture to return a Location element with name and on_enter and
+    on_exit actions.
+    """
+    state = ET.Element('location', id='id1')
+    ET.SubElement(state, 'name', x='-1088', y='-382').text = 'Init'
+    on_enter = ET.SubElement(
+        state, 'label', kind='testcodeEnter', x='-1088', y='-382')
+    on_enter.text = "logState(), makeStepAction()"
+    on_exit = ET.SubElement(
+        state, 'label', kind='testcodeExit', x='-1088', y='-382')
+    on_exit.text = "logExit()"
+    return state
+
+
+@pytest.fixture
+def uppaal_transition_element() -> ET.Element:
     """Fixture to return a transition element with guards and updates.
     """
     transition = ET.Element('transition', id='id15')
@@ -32,7 +48,7 @@ def uppal_transition_element() -> ET.Element:
 
 
 @pytest.fixture
-def uppal_simple_transition_element() -> ET.Element:
+def uppaal_simple_transition_element() -> ET.Element:
     """Fixture to return a simple transition element.
     """
     transition = ET.Element('transition', id='id15')

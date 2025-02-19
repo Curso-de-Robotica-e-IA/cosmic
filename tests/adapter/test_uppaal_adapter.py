@@ -137,17 +137,17 @@ def test_filter_conditions(label_text, expected):
             assert func in result['declared_functions']
 
 
-def test_evalute_transition_without_labels(uppal_simple_transition_element):
+def test_evalute_transition_without_labels(uppaal_simple_transition_element):
     has_label, content = UppaalAdapter.evaluate_transition(
-        uppal_simple_transition_element,
+        uppaal_simple_transition_element,
     )
     assert not has_label
     assert content is None
 
 
-def test_evaluate_transition(uppal_transition_element):
+def test_evaluate_transition(uppaal_transition_element):
     has_label, content = UppaalAdapter.evaluate_transition(
-        uppal_transition_element,
+        uppaal_transition_element,
     )
     # bad test assertion, but dictionaries...
     assert has_label
@@ -166,7 +166,7 @@ def test_get_xml_data(xml_file):
     assert set(result_dict.keys()) == expected_agents
 
 
-def test_build_transition(uppal_transition_element):
+def test_build_transition(uppaal_transition_element):
     id_to_state = {
         '1d1': 'state1',
         '1d2': 'state2',
@@ -193,7 +193,7 @@ def test_build_transition(uppal_transition_element):
 
     result = UppaalAdapter.build_transition(
         id_to_state_map=id_to_state,
-        edge=uppal_transition_element,
+        edge=uppaal_transition_element,
     )
     assert result.keys() == expected.keys()
     # bad test assertion, but dictionaries...
@@ -298,3 +298,35 @@ def test_parse_template(uppaal_branchpoint_machine):
     )
 
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    'label_text, expected',
+    [
+        ('logState()', ['log_state']),
+        ('reset()', ['reset']),
+        ('logState(), reset()', ['log_state', 'reset']),
+        (
+            'logState(), reset(), snake_case()',
+            ['log_state', 'reset', 'snake_case'],
+        ),
+    ]
+)
+def test_format_state_functions(label_text, expected):
+    result = UppaalAdapter._format_state_functions(label_text)
+    assert result == expected
+
+
+def test_build_state(uppaal_state_element):
+    result = UppaalAdapter.build_state(uppaal_state_element)
+    expected_state = State(
+        name='init',
+        on_enter=['log_state', 'make_step_action'],
+        on_exit=['log_exit'],
+    )
+    expected_functions = ['log_state', 'make_step_action', 'log_exit']
+    result_state, result_functions = result
+    for func in expected_functions:
+        assert func in result_functions
+    for key in expected_state.keys():
+        assert result_state[key] == expected_state[key]
